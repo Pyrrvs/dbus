@@ -128,6 +128,25 @@ func SystemBus() (conn *Conn, err error) {
 	return
 }
 
+func SystemBusNew() (conn *Conn, err error) {
+	systemBusLck.Lock()
+	defer systemBusLck.Unlock()
+	conn, err = SystemBusPrivate()
+	if err != nil {
+		return
+	}
+	if err = conn.Auth(nil); err != nil {
+		conn.Close()
+		conn = nil
+		return
+	}
+	if err = conn.Hello(); err != nil {
+		conn.Close()
+		conn = nil
+	}
+	return
+}
+
 // SystemBusPrivate returns a new private connection to the system bus.
 func SystemBusPrivate() (*Conn, error) {
 	address := os.Getenv("DBUS_SYSTEM_BUS_ADDRESS")
